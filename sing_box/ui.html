@@ -11,7 +11,7 @@
 let cfg={},tab='socks';const el=x=>document.getElementById(x);
 function msg(s,err=false){el('message').textContent=s;el('message').style.color=err?'#ff9999':'#8ceac3'}
 async function req(url,data){let r=await fetch(url,data?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}:{}),j=await r.json();if(!r.ok)throw Error(j.error||r.status);return j}
-function escapeHtml(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;':'&quot;',"'":'&#39;'}[c]))}
+function escapeHtml(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function saveForm(){
  if(tab==='json'){cfg=JSON.parse(el('editor').value);return}
  let s=(cfg.inbounds||[]).find(x=>x.type==='socks');if(s){s.listen_port=Number(el('port').value);s.users=[{username:el('login').value,password:el('password').value}]}
