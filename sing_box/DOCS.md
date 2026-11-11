@@ -1,15 +1,13 @@
-# sing-box Proxy & GUI
+# sing-box HAOS add-on
 
-Start the add-on, then click **Open Web UI**. The GUI is protected by Home Assistant Ingress.
+There is no Ingress panel or separate web UI. Paste the complete sing-box JSON into the **Configuration → sing_box_config** field.
 
-The editor supports SOCKS5 credentials, VLESS + REALITY, Hysteria2, route final outbound, and full JSON.
+The container listens on `1080/tcp` by default. Under **Network**, choose the external host port. For example, host `11080` can map to container `1080/tcp` while JSON retains `"listen_port": 1080`.
 
-By default the proxy uses direct routing only. Add remote outbounds and route rules through the JSON editor.
+Optional `1080/udp` can be exposed separately. Additional internal ports cannot be published from the add-on UI unless they are declared in its manifest.
 
-Use **Check** before **Save and restart**. sing-box validates configuration before applying changes. A backup of the previous configuration is written.
+Save your configuration, restart the add-on and check the log. The add-on validates it with `sing-box check` before starting. Keep your SOCKS5 password secret and never forward the SOCKS5 port to the public Internet.
 
-SOCKS5 is exposed at TCP port 1080. Optional UDP/1080 can be enabled under add-on network settings. Restrict access to trusted LAN clients.
+**Upgrade:** Previous Ingress editor config is not migrated automatically. Copy the old `config.json` into the new configuration field before updating if needed.
 
-For Keenetic use the HAOS host IP, TCP/1080, username keenetic and the randomly generated password visible in the SOCKS5 tab.
-
-**Experimental:** installation and Docker networking still require testing on an actual HAOS Supervisor.
+**Status:** experimental, not yet tested in a real HAOS installation.
