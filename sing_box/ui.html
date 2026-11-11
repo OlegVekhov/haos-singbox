@@ -1,0 +1,37 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>sing-box HAOS</title>
+<style>body{font:15px system-ui;background:#111c28;color:#eef;margin:0}main{max-width:940px;margin:auto;padding:20px}nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}button{background:#294358;color:white;padding:10px 14px;border:0;border-radius:8px;cursor:pointer}.primary{background:#03a9f4;color:#091724}section{display:none}section.active{display:block}.panel{background:#203142;border-radius:12px;padding:18px;margin-bottom:12px}label{display:block;margin:12px 0}input,select,textarea{box-sizing:border-box;width:100%;background:#101b28;color:white;border:1px solid #536675;border-radius:6px;padding:9px}textarea{height:400px;font:13px monospace}small{color:#b3c3ce}#message{white-space:pre-wrap;color:#8ceac3;padding:12px}</style></head>
+<body><main><h1>sing-box · Home Assistant</h1><small>SOCKS5 · REALITY · Hysteria2 · Advanced JSON</small><p id="status">…</p>
+<nav><button onclick="show('socks')">SOCKS5</button><button onclick="show('servers')">Серверы</button><button onclick="show('routing')">Маршруты</button><button onclick="show('json')">Полный JSON</button></nav>
+<section class="active panel" id="socks"><h2>SOCKS5 для Keenetic</h2><label>Порт<input id="port" type="number"></label><label>Логин<input id="login"></label><label>Пароль<input id="password" type="password"></label><button onclick="reveal()">Показать / скрыть пароль</button></section>
+<section class="panel" id="servers"><h2>Исходящие подключения</h2><div id="outbounds"></div><button onclick="add('vless')">+ VLESS REALITY</button> <button onclick="add('hysteria2')">+ Hysteria2</button><p><small>Другие параметры и транспортные настройки доступны в JSON.</small></p></section>
+<section class="panel" id="routing"><h2>Маршрутизация</h2><label>Исходящий маршрут по умолчанию<select id="final"></select></label><p>Правила DNS и геомаршрутизации RU/World настраиваются в полном JSON. Добавление сервера само по себе не меняет маршруты.</p></section>
+<section class="panel" id="json"><h2>config.json</h2><textarea id="editor" spellcheck="false"></textarea></section>
+<button onclick="apply(false)">Проверить</button> <button class="primary" onclick="apply(true)">Сохранить и перезапустить</button> <button onclick="load()">Перезагрузить с диска</button><div id="message" role="status"></div>
+</main><script>
+let cfg={},tab='socks';const el=x=>document.getElementById(x);
+function msg(s,err=false){el('message').textContent=s;el('message').style.color=err?'#ff9999':'#8ceac3'}
+async function req(url,data){let r=await fetch(url,data?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}:{}),j=await r.json();if(!r.ok)throw Error(j.error||r.status);return j}
+function escapeHtml(x){return String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;':'&quot;',"'":'&#39;'}[c]))}
+function saveForm(){
+ if(tab==='json'){cfg=JSON.parse(el('editor').value);return}
+ let s=(cfg.inbounds||[]).find(x=>x.type==='socks');if(s){s.listen_port=Number(el('port').value);s.users=[{username:el('login').value,password:el('password').value}]}
+ document.querySelectorAll('[data-server]').forEach(d=>{let o=cfg.outbounds[Number(d.dataset.server)];d.querySelectorAll('[data-field]').forEach(f=>{let p=o,parts=f.dataset.field.split('.');for(let i=0;i<parts.length-1;i++)p=p[parts[i]]??={};p[parts.at(-1)]=f.type==='number'?Number(f.value):f.value})});
+ cfg.route??={};cfg.route.final=el('final').value
+}
+function form(){
+ let s=(cfg.inbounds||[]).find(x=>x.type==='socks')||{};el('port').value=s.listen_port||1080;el('login').value=s.users?.[0]?.username||'';el('password').value=s.users?.[0]?.password||'';
+ el('final').innerHTML=(cfg.outbounds||[]).map(o=>'<option>'+escapeHtml(o.tag)+'</option>').join('');el('final').value=cfg.route?.final||'direct';
+ el('outbounds').innerHTML=(cfg.outbounds||[]).map((o,i)=>['vless','hysteria2'].includes(o.type)?'<div data-server="'+i+'"><h3>'+escapeHtml(o.tag)+' ('+o.type+')</h3>'+fields(o)+ '<button onclick="remove('+i+')">Удалить</button></div>':'').join('');
+ el('editor').value=JSON.stringify(cfg,null,2)
+}
+function fields(o){let items=[['tag',o.tag],['server',o.server],['server_port',o.server_port],['tls.server_name',o.tls?.server_name]];
+ if(o.type==='vless')items.push(['uuid',o.uuid],['tls.reality.public_key',o.tls?.reality?.public_key],['tls.reality.short_id',o.tls?.reality?.short_id]);else items.push(['password',o.password]);
+ return items.map(([key,value])=>'<label>'+escapeHtml(key)+'<input data-field="'+key+'" '+(key==='server_port'?'type="number"':'')+' value="'+escapeHtml(value)+'"></label>').join('')}
+function show(next){try{saveForm();tab=next;form();document.querySelectorAll('section').forEach(x=>x.classList.toggle('active',x.id===tab))}catch(e){msg(e.message,true)}}
+function reveal(){el('password').type=el('password').type==='password'?'text':'password'}
+function add(type){saveForm();cfg.outbounds??=[];cfg.outbounds.push(type==='vless'?{type,tag:'italy-vless',server:'example.com',server_port:443,uuid:'',flow:'xtls-rprx-vision',tls:{enabled:true,server_name:'example.com',utls:{enabled:true,fingerprint:'chrome'},reality:{enabled:true,public_key:'',short_id:''}}}:{type,tag:'italy-hy2',server:'example.com',server_port:443,password:'',tls:{enabled:true,server_name:'example.com'}});form()}
+function remove(index){saveForm();cfg.outbounds.splice(index,1);form()}
+async function load(){try{cfg=await req('api/config');form();msg('Загружено')}catch(e){msg(e.message,true)}}
+async function apply(save){try{saveForm();let r=await req(save?'api/config':'api/check',cfg);form();msg(r.message)}catch(e){msg(e.message,true)}}
+load();async function status(){try{let s=await req('api/status');el('status').textContent=s.running?'● Running':'● Stopped'}catch(e){el('status').textContent='Offline'}}status();setInterval(status,15000)
+</script></body></html>
