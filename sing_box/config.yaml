@@ -1,0 +1,32 @@
+name: sing-box Proxy & GUI
+slug: sing_box
+version: 1.14.4-2
+description: sing-box SOCKS5 proxy with Ingress GUI and JSON validation
+url: https://github.com/OlegVekhov/haos-singbox
+arch:
+  - amd64
+  - aarch64
+  - armv7
+startup: services
+boot: auto
+init: false
+ingress: true
+ingress_port: 8099
+ingress_panel: true
+panel_icon: mdi:shield-lock
+panel_title: sing-box
+map:
+  - type: addon_config
+    read_only: false
+ports:
+  1080/tcp: 1080
+  1080/udp: null
+ports_description:
+  1080/tcp: SOCKS5 TCP for LAN clients
+  1080/udp: Optional SOCKS5 UDP relay
+options:
+  socks_port: 1080
+  log_level: info
+schema:
+  socks_port: port
+  log_level: list(trace|debug|info|warn|error|fatal|panic)
