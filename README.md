@@ -1,37 +1,19 @@
-# sing-box Proxy & GUI for Home Assistant OS
+# sing-box for Home Assistant OS
 
-Experimental Home Assistant add-on running sing-box with a SOCKS5 listener and an embedded Ingress configuration editor.
+Lightweight sing-box add-on with a **full JSON text configuration field** in the native Home Assistant add-on **Configuration** tab. No Ingress, GUI web service, TUN, host networking or privileged container.
 
-## Install
+## Installation
 
-1. Home Assistant → **Settings → Add-ons → Add-on Store → ⋮ → Repositories**.
-2. Add `https://github.com/OlegVekhov/haos-singbox`.
-3. Install **sing-box Proxy & GUI**.
-4. Start the add-on and click **Open Web UI**.
+Add repository `https://github.com/OlegVekhov/haos-singbox` in Home Assistant add-on store, install **sing-box**, open **Configuration**, and edit `sing_box_config` with your sing-box JSON.
 
-## Features
+The default configuration runs a SOCKS5 listener at `0.0.0.0:1080`. Change `CHANGE_THIS_PASSWORD` before use.
 
-- SOCKS5 server on TCP port 1080 for Keenetic or other trusted LAN devices (optional UDP exposure).
-- Native Home Assistant Ingress GUI for SOCKS5 credentials, VLESS + REALITY, Hysteria2, and default outbound.
-- Advanced JSON editor with validation via `sing-box check` before saving.
-- Restart of sing-box when configuration changes, plus a backup of the previous configuration.
-- No TUN or host networking necessary.
+Under the add-on **Network** section select the host TCP port mapped to internal `1080/tcp`. Host and internal ports can differ. UDP mapping is optional, depending on Keenetic SOCKS5 UDP support.
 
-## Important limitations
+The add-on validates the JSON via `sing-box check` and then starts sing-box directly. It uses a Debian-based image to avoid the glibc dynamic-loader failure observed in the original Alpine build.
 
-- Initial routing is **direct only**. Configure your remote outbound and RU/World rules through advanced JSON before using foreign routing.
-- SOCKS5 is not a full-device IP tunnel. DNS, UDP and IPv6 behavior depends on the client (including Keenetic).
-- Do not expose TCP/1080 to the public Internet. Restrict it to trusted LAN subnets.
-- The add-on is **experimental and has not yet been verified on a real HAOS installation**. Open an issue with the Supervisor build log if installation fails.
-- sing-box is pinned to version 1.14.4 for this version of the add-on; new sing-box releases will require a package update.
+**Note:** the add-on currently declares internal port 1080. To use a different internal port you must change the add-on manifest and rebuild. DNS, IPv6 and UDP traffic still require separate consideration.
 
-## Source
+**Experimental** — full Supervisor installation and networking have not yet been verified. The old Ingress UI has been removed. Previously saved Ingress configuration will not be migrated automatically.
 
-- `repository.yaml`: Home Assistant add-on repository metadata.
-- `sing_box/config.yaml`: add-on manifest.
-- `sing_box/Dockerfile`: container build.
-- `sing_box/app.py`: manager process, configuration validation, Ingress API.
-- `sing_box/ui.html`: GUI.
-- `sing_box/DOCS.md`: add-on help.
-
-Contributions and issue reports welcome.
+See [configuration notes](sing_box/DOCS.md).
