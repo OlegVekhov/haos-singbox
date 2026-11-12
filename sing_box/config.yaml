@@ -1,7 +1,7 @@
 name: sing-box
 slug: sing_box
-version: 1.14.4-6
-description: sing-box with full YAML/JSON configuration in Home Assistant
+version: 1.14.4-7
+description: sing-box SOCKS5 with reliable multiline JSON configuration
 url: https://github.com/OlegVekhov/haos-singbox
 arch:
   - amd64
@@ -17,19 +17,18 @@ ports_description:
   1080/tcp: SOCKS5 TCP (choose external port in Network)
   1080/udp: Optional SOCKS5 UDP
 options:
-  log:
-    level: info
-  inbounds:
-    - type: socks
-      tag: keenetic-socks
-      listen: "0.0.0.0"
-      listen_port: 1080
-      users:
-        - username: keenetic
-          password: CHANGE_THIS_PASSWORD
-  outbounds:
-    - type: direct
-      tag: direct
-  route:
-    final: direct
-schema: false
+  sing_box_config: |
+    {
+      "log": {"level": "info"},
+      "inbounds": [{
+        "type": "socks",
+        "tag": "keenetic-socks",
+        "listen": "0.0.0.0",
+        "listen_port": 1080,
+        "users": [{"username": "keenetic", "password": "CHANGE_THIS_PASSWORD"}]
+      }],
+      "outbounds": [{"type": "direct", "tag": "direct"}],
+      "route": {"final": "direct"}
+    }
+schema:
+  sing_box_config: str
