@@ -1,6 +1,6 @@
 # Configuration and troubleshooting
 
-This page documents the **current working add-on** (`1.14.4-8`). The authoritative options schema is [config.yaml](config.yaml).
+This page documents the **current working add-on** (`1.14.4-9`). The authoritative options schema is [config.yaml](config.yaml).
 
 ## Editing the full JSON in Home Assistant
 
@@ -57,6 +57,10 @@ If the `sing_box_config` setting is absent entirely, the runner may reuse the la
 If you configure a VLESS inbound on a different internal port, you must arrange the corresponding port publishing and firewall/NAT. Port 8443 is declared but its host mapping is off by default. Do not assume the add-on's external `1080` port exposes an internal `8443` listener.
 
 For LAN destinations such as `192.168.249.39`, check the HAOS-side route and destination firewall/return route. A `direct` log entry confirms routing selection, **not** successful reachability.
+
+## TLS certificate files
+
+Add-on version `1.14.4-9` mounts Home Assistant Supervisor's `/ssl` directory **read-only**. Store a matching certificate chain and private key in the Home Assistant `ssl` share; for example `/ssl/vekhov-fullchain.pem` and `/ssl/vekhov-privkey.pem`. In the **complete** sing-box JSON you paste in `sing_box_config`, use TLS file references `certificate_path` and `key_path` to those paths, rather than embedding PEM or copying private keys to GitHub. The mount only enables file access; the add-on does not issue or renew certificates, expose router TCP/443, or automatically change any existing inbound. Check that both files are present and readable before switching from embedded PEM. Back up the working JSON for rollback.
 
 ## Keenetic WireGuard through SOCKS5
 
