@@ -1,4 +1,4 @@
-"""HAOS sing-box runner: raw options as configuration, with legacy migrations."""
+"""sing-box HAOS runner: validated JSON options with existing-config protection."""
 import json
 import os
 import subprocess
@@ -10,36 +10,39 @@ CONFIG = Path("/data/config.json")
 BINARY = "/usr/local/bin/sing-box"
 
 
-def decode(value):
-    # HAOS prior releases used a JSON string nested under sing_box_config.
-    # Handle both a native mapping and strings; accept top-level raw JSON too.
-    for _ in range(4):
-        if isinstance(value, str):
-            value = json.loads(value)
-        elif isinstance(value, dict) and "sing_box_config" in value:
-            value = value["sing_box_config"]
-        else:
-            break
-    if not isinstance(value, dict):
-        raise ValueError("Home Assistant options must contain a sing-box JSON object")
-    if not isinstance(value.get("inbounds"), list) or not isinstance(value.get("outbounds"), list):
-        raise ValueError(
-            "Missing inbounds/outbounds. Paste the complete sing-box config "
-            "into the add-on YAML editor (or keep sing_box_config for migration)."
-        )
-    return value
+def load():
+    opts = json.loads(OPTIONS.read_text(encoding="utf-8"))
+    raw = opts.get("sing_box_config") if isinstance(opts, dict) else None
+    if isinstance(raw, dict):
+        return raw
+    if isinstance(raw, str) and raw.strip():
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"Invalid JSON in sing_box_config: {exc}") from exc
+        return parsed
+    if CONFIG.is_file():
+        print("[sing-box] WARNING: sing_box_config missing; reusing saved /data/config.json", flush=True)
+        return json.loads(CONFIG.read_text(encoding="utf-8"))
+    raise ValueError("Missing sing_box_config: paste complete JSON into the Configuration tab")
 
 
 def main():
-    config = decode(json.loads(OPTIONS.read_text(encoding="utf-8")))
+    cfg = load()
+    if not isinstance(cfg, dict) or not isinstance(cfg.get("inbounds"), list) or not isinstance(cfg.get("outbounds"), list):
+        raise ValueError("Configuration must contain JSON object with inbounds and outbounds")
     tmp = CONFIG.with_suffix(".json.tmp")
-    with tmp.open("w", encoding="utf-8") as f:
-        json.dump(config, f, ensure_ascii=False, indent=2)
-        f.write("\n")
-    tmp.chmod(0o600)
-    os.replace(tmp, CONFIG)
+    with tmp.open("w", encoding="utf-8") as fp:
+        json.dump(cfg, fp, ensure_ascii=False, indent=2)
+        fp.write("\n")
+    os.chmod(tmp, 0o600)
     print("[sing-box] Checking configuration...", flush=True)
-    subprocess.run([BINARY, "check", "-c", str(CONFIG)], check=True)
+    try:
+        subprocess.run([BINARY, "check", "-c", str(tmp)], check=True)
+    except Exception:
+        tmp.unlink(missing_ok=True)
+        raise
+    os.replace(tmp, CONFIG)
     print("[sing-box] Starting...", flush=True)
     os.execv(BINARY, [BINARY, "run", "-D", "/data", "-c", str(CONFIG)])
 
