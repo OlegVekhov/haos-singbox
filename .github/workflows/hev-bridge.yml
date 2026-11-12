@@ -1,0 +1,22 @@
+name: Experimental Hev bridge checks
+on:
+  push:
+    branches:
+      - experimental/hev-udp-bridge
+  workflow_dispatch:
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sing_box/bridge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Compile and test bridge
+        run: |
+          gofmt -l main.go main_test.go
+          GO111MODULE=off go test -race -v ./...
+          GO111MODULE=off go build -o /tmp/hevbridge ./main.go
