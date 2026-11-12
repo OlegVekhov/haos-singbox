@@ -6,7 +6,7 @@
 
 A lightweight, configurable **sing-box proxy add-on** for Home Assistant OS / Supervisor. It runs the official sing-box binary in a dedicated container, with the full sing-box JSON configuration supplied through the native add-on **Configuration** tab.
 
-**Add-on version:** `1.14.4-7` · **sing-box version:** `1.14.4` · **Status:** tested by the maintainer on HAOS; not a Home Assistant official add-on.
+**Add-on version:** `1.14.4-8` · **sing-box version:** `1.14.4` · **Status:** tested by the maintainer on HAOS; not a Home Assistant official add-on.
 
 ## Features
 
@@ -15,6 +15,7 @@ A lightweight, configurable **sing-box proxy add-on** for Home Assistant OS / Su
 - Validate with `sing-box check` before starting. Invalid configuration prevents startup rather than silently replacing the last working file.
 - Keep the last successfully validated JSON in `/data/config.json`. The add-on can reuse it if the `sing_box_config` option is missing.
 - Default SOCKS5 listener: internal TCP port `1080`; optional UDP mapping.
+- Optional **Keenetic Hev UDP-in-TCP bridge** (`hev_udp_bridge: true`) for UDP-based applications such as WireGuard through KeeneticOS 5's built-in SOCKS5 client. The bridge passes normal TCP connections to sing-box unchanged.
 - Debian-based multi-architecture container: `amd64`, `aarch64`, `armv7`.
 - No Ingress web interface, privileged container, or host networking.
 
@@ -25,14 +26,16 @@ A lightweight, configurable **sing-box proxy add-on** for Home Assistant OS / Su
    `https://github.com/OlegVekhov/haos-singbox`
 3. Find **sing-box**, install it, and open its **Configuration** tab.
 4. Replace the demonstration JSON in **`sing_box_config`** with your own valid sing-box JSON. Change the example password before first use.
-5. Under **Network**, configure the host port published for internal `1080/tcp`, and optionally `1080/udp`.
-6. Save, start the add-on, and check **Log** for configuration validation and startup.
+5. For KeeneticOS 5 Hev UDP-in-TCP support, set `hev_udp_bridge: true` alongside `sing_box_config`. Keep it `false` for regular SOCKS5 operation.
+6. Under **Network**, configure the host port published for internal `1080/tcp`, and optionally `1080/udp`.
+7. Save, start the add-on, and check **Log** for configuration validation and startup.
 
 > **Important:** Keep the **`sing_box_config`** option name. Paste the entire sing-box JSON **as the value of this field**. Do **not** replace the entire add-on options object with sing-box keys or remove the wrapper.
 
 Example add-on options:
 
 ```yaml
+hev_udp_bridge: false
 sing_box_config: |
   {
     "log": {"level": "info"},
@@ -52,13 +55,14 @@ This is a **minimal demonstration**, not a production-ready public proxy. You ca
 
 ## Ports and network boundaries
 
-The manifest currently publishes **internal `1080/tcp`** and optionally **`1080/udp`**. Publishing an external host port is separate from the `listen_port` defined in your sing-box JSON. Additional inbound ports (such as a VLESS listener on `8443`) are **not automatically exposed** by this manifest; they require explicit network/publishing configuration and possibly a manifest update.
+The manifest currently publishes **internal `1080/tcp`** and optionally **`1080/udp`**. Publishing an external host port is separate from the `listen_port` defined in your sing-box JSON. The manifest also declares optional internal `8443/tcp` (disabled by default); enable its host mapping under Network if your sing-box JSON has a VLESS listener on port 8443.
 
 **Routing note:** sing-box `direct` means the add-on container/HAOS network, not the phone's mobile network. Reaching a private LAN address requires routes, firewall rules and a working return path from the HAOS host/network.
 
 ## Documentation
 
 - [Detailed configuration & troubleshooting](sing_box/DOCS.md)
+- [Keenetic Hev UDP-in-TCP / WireGuard bridge](sing_box/BRIDGE.md)
 - [Changelog](sing_box/CHANGELOG.md)
 - [Issue tracker](https://github.com/OlegVekhov/haos-singbox/issues)
 - [Official sing-box documentation](https://sing-box.sagernet.org/)

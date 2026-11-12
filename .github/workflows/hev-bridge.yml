@@ -1,0 +1,29 @@
+name: Hev UDP-in-TCP bridge checks
+on:
+  push:
+    branches:
+      - main
+      - experimental/hev-udp-bridge
+    paths:
+      - 'sing_box/bridge/**'
+      - '.github/workflows/hev-bridge.yml'
+  pull_request:
+    paths:
+      - 'sing_box/bridge/**'
+      - '.github/workflows/hev-bridge.yml'
+  workflow_dispatch:
+jobs:
+  bridge:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sing_box/bridge
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Test Hev framing and UDP relay
+        run: GO111MODULE=off go test -race -v ./...
+      - name: Build bridge
+        run: GO111MODULE=off go build -o /tmp/hevbridge ./main.go

@@ -1,12 +1,13 @@
 # Configuration and troubleshooting
 
-This page documents the **current working add-on** (`1.14.4-7`). The authoritative options schema is [config.yaml](config.yaml).
+This page documents the **current working add-on** (`1.14.4-8`). The authoritative options schema is [config.yaml](config.yaml).
 
 ## Editing the full JSON in Home Assistant
 
 Open the add-on **Configuration** tab. The single field `sing_box_config` accepts the **entire sing-box JSON as text**. In **Edit in YAML**, its value must be a YAML multiline string:
 
 ```yaml
+hev_udp_bridge: false
 sing_box_config: |
   {
     "log": {"level": "info"},
@@ -26,6 +27,7 @@ sing_box_config: |
   }
 ```
 
+- Set `hev_udp_bridge: true` if KeeneticOS 5 needs Hev UDP-in-TCP (including WireGuard UDP). Leave it `false` for standard SOCKS5. The bridge option is separate from `sing_box_config`.
 - The outer `sing_box_config: |` belongs to **Home Assistant Supervisor**; the JSON inside belongs to **sing-box**.
 - **Do not** paste `inbounds:`, `outbounds:`, etc. at the top level of add-on options. That schema was tried in development and **reverted**.
 - **Do not** replace a working configuration with the example: the example contains no VLESS or REALITY inbound.
@@ -48,13 +50,17 @@ If the `sing_box_config` setting is absent entirely, the runner may reuse the la
 | --- | --- |
 | `1080/tcp` | Published internal SOCKS5 TCP listener; its external host port is configurable in the add-on Network tab |
 | `1080/udp` | Optional internal SOCKS5 UDP port mapping |
-| `8443/tcp`, etc. | **Not published** by the current manifest |
+| `8443/tcp` | Optional published internal VLESS TCP listener, **disabled by default**; choose its host mapping in Network |
 | `listen: 0.0.0.0` | Listen on container interfaces, not automatically on the public router's WAN |
 | `route: ... direct` | Traffic leaves via the container/HAOS networking context |
 
-If you configure a VLESS inbound on a different internal port, you must arrange the corresponding port publishing and firewall/NAT. Do not assume the add-on's external `1080` port exposes an internal `8443` listener.
+If you configure a VLESS inbound on a different internal port, you must arrange the corresponding port publishing and firewall/NAT. Port 8443 is declared but its host mapping is off by default. Do not assume the add-on's external `1080` port exposes an internal `8443` listener.
 
 For LAN destinations such as `192.168.249.39`, check the HAOS-side route and destination firewall/return route. A `direct` log entry confirms routing selection, **not** successful reachability.
+
+## Keenetic WireGuard through SOCKS5
+
+KeeneticOS 5 can use the nonstandard Hev UDP-in-TCP command `0x05` for UDP datagrams. Plain sing-box SOCKS5 inbound does not handle that command; this add-on can optionally run a small bridge. Set `hev_udp_bridge: true` and keep a single authenticated SOCKS/mixed inbound on port `1080`. The bridge listens on `1080` and forwards to a sing-box inbound moved to loopback port `1081` **in the generated runtime config only**. Other sing-box inbounds and routing remain unchanged. No public UDP port is needed for that bridge. See [BRIDGE.md](BRIDGE.md) for limitations. The maintainer confirmed WireGuard connects using the test add-on; this is not a throughput or long-duration stability certification.
 
 ## Troubleshooting
 

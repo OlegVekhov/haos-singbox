@@ -1,7 +1,7 @@
 name: sing-box
 slug: sing_box
-version: 1.14.4-7
-description: sing-box SOCKS5 with reliable multiline JSON configuration
+version: 1.14.4-8
+description: sing-box with optional Keenetic Hev UDP-in-TCP bridge
 url: https://github.com/OlegVekhov/haos-singbox
 arch:
   - amd64
@@ -13,10 +13,13 @@ init: false
 ports:
   1080/tcp: 1080
   1080/udp: null
+  8443/tcp: null
 ports_description:
   1080/tcp: SOCKS5 TCP (choose external port in Network)
-  1080/udp: Optional SOCKS5 UDP
+  1080/udp: Optional SOCKS5 UDP (legacy mode only)
+  8443/tcp: Extra TCP listener for phone (choose external port in Network; configure sing-box inbound on 8443)
 options:
+  hev_udp_bridge: false
   sing_box_config: |
     {
       "log": {"level": "info"},
@@ -31,4 +34,5 @@ options:
       "route": {"final": "direct"}
     }
 schema:
+  hev_udp_bridge: bool
   sing_box_config: str

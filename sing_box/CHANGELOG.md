@@ -4,6 +4,24 @@ All notable changes to the Home Assistant sing-box add-on are documented here. T
 
 ## [Unreleased]
 
+_No changes yet._
+
+## [1.14.4-8] - 2026-11-12
+
+### Added
+- Optional KeeneticOS 5 Hev UDP-in-TCP (`0x05`) bridge, allowing UDP applications such as WireGuard to traverse the SOCKS5 proxy.
+- Go bridge binary with TCP CONNECT forwarding, upstream SOCKS5 UDP association and bidirectional datagram encapsulation.
+- `hev_udp_bridge: bool` Supervisor setting (disabled by default).
+- Optional `8443/tcp` port declaration for independently configured VLESS inbounds.
+- Bridge-specific documentation and Go tests.
+
+### Compatibility
+- Kept the production add-on slug `sing_box` and preserved `sing_box_config` as multiline JSON string.
+- Standard mode remains the default, with the bridge opt-in. The original JSON config is not modified when bridge mode starts.
+- WireGuard connection was confirmed by the maintainer using the experimental build; full platform-specific build and stability checks are still recommended.
+
+
+
 ### Documentation
 - Reconcile the README and detailed setup instructions with the shipped, working `sing_box_config` **multiline JSON string** schema.
 - Document network port publishing, private-network routing, diagnostics and safe handling of credentials.

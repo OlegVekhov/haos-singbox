@@ -1,3 +1,8 @@
+FROM golang:1.23-bookworm AS bridge-builder
+WORKDIR /src
+COPY bridge/main.go /src/main.go
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /hevbridge /src/main.go
+
 FROM python:3.12-slim-bookworm
 ARG BUILD_ARCH
 ARG SING_BOX_VERSION=1.14.4
@@ -9,6 +14,7 @@ RUN set -eux; \
     install -m 0755 "/tmp/sing-box-${SING_BOX_VERSION}-linux-${TARGET}/sing-box" /usr/local/bin/sing-box; \
     /usr/local/bin/sing-box version; \
     rm -rf /tmp/sb.tar.gz "/tmp/sing-box-${SING_BOX_VERSION}-linux-${TARGET}"
+COPY --from=bridge-builder /hevbridge /usr/local/bin/hevbridge
 COPY run.py /opt/run.py
 LABEL io.hass.type="addon"
 CMD ["python3", "-u", "/opt/run.py"]
