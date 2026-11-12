@@ -6,6 +6,17 @@ All notable changes to the Home Assistant sing-box add-on are documented here. T
 
 _No changes yet._
 
+## [1.14.4-9] - 2026-11-12
+
+### Added
+- Read-only Home Assistant Supervisor SSL directory mount (`map: [{type: ssl, read_only: true}]`).
+- Certificate-chain and private-key file references are now possible via `/ssl/...` in sing-box TLS configuration.
+
+### Compatibility
+- No changes to the runner, Dockerfile, `sing_box_config` schema, bridge implementation, or network port mappings.
+- Existing embedded TLS certificates continue to work. SSL files are optional; the add-on does not manage renewals.
+
+
 ## [1.14.4-8] - 2026-11-12
 
 ### Added
