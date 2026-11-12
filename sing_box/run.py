@@ -11,12 +11,18 @@ BINARY = "/usr/local/bin/sing-box"
 
 def main():
     options = json.loads(OPTIONS.read_text(encoding="utf-8"))
-    raw = options.get("sing_box_config", "")
-    if not isinstance(raw, str):
-        raise ValueError("sing_box_config must be JSON text")
-    config = json.loads(raw)
+    raw = options.get("sing_box_config")
+    # Upgrade-compatible: older installs store a JSON string.
+    # New installs use a native mapping for HAOS raw YAML/JSON editor.
+    if isinstance(raw, str):
+        config = json.loads(raw)
+    elif isinstance(raw, dict):
+        config = raw
+    else:
+        raise ValueError("sing_box_config must be a JSON string or YAML object")
+
     if not isinstance(config, dict):
-        raise ValueError("sing_box_config must contain a JSON object")
+        raise ValueError("sing_box_config must contain a configuration object")
 
     temp = Path("/data/config.json.tmp")
     with temp.open("w", encoding="utf-8") as f:
