@@ -38,5 +38,5 @@ These entries summarize the repository's development history. Intermediate packa
 - Created the Home Assistant add-on repository and manifest.
 - Added a sing-box launcher, upstream binary installation and basic SOCKS5 example.
 
-[Unreleased]: https://github.com/OlegVekhov/haos-singbox/compare/main...main
-[1.14.4-7]: https://github.com/OlegVekhov/haos-singbox/commits/main/
+[Unreleased]: https://github.com/OlegVekhov/haos-singbox/commits/main/
+[1.14.4-7]: https://github.com/OlegVekhov/haos-singbox/commit/2b28321e768410db7ab838e0ae685c37a720fffc
