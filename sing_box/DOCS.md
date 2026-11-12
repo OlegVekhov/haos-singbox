@@ -1,13 +1,39 @@
-# sing-box HAOS add-on
+# sing-box for Home Assistant OS
 
-There is no Ingress panel or separate web UI. Paste the complete sing-box JSON into the **Configuration → sing_box_config** field.
+The whole sing-box configuration is edited through Home Assistant's native expanded YAML/JSON add-on Configuration editor. No Ingress or additional web UI is required.
 
-The container listens on `1080/tcp` by default. Under **Network**, choose the external host port. For example, host `11080` can map to container `1080/tcp` while JSON retains `"listen_port": 1080`.
+## Editing a configuration
 
-Optional `1080/udp` can be exposed separately. Additional internal ports cannot be published from the add-on UI unless they are declared in its manifest.
+1. Open the add-on's **Configuration** tab.
+2. Edit `sing_box_config` as a YAML mapping. YAML maps/lists are converted internally to sing-box JSON.
+3. Save and restart the add-on. The start script validates the generated JSON with `sing-box check` before launching.
+4. In the **Network** section set the external host port for internal `1080/tcp`. Your SOCKS5 inbound must still listen on `0.0.0.0:1080`.
 
-Save your configuration, restart the add-on and check the log. The add-on validates it with `sing-box check` before starting. Keep your SOCKS5 password secret and never forward the SOCKS5 port to the public Internet.
+**Important for upgrades:** if the earlier version stored `sing_box_config` as a JSON *string*, it is still supported. Do not delete your existing configuration. You can optionally convert that string into a YAML mapping when convenient. Back up the current configuration before editing.
 
-**Upgrade:** Previous Ingress editor config is not migrated automatically. Copy the old `config.json` into the new configuration field before updating if needed.
+Example:
 
-**Status:** experimental, not yet tested in a real HAOS installation.
+```yaml
+sing_box_config:
+  log:
+    level: info
+  inbounds:
+    - type: socks
+      tag: keenetic-socks
+      listen: "0.0.0.0"
+      listen_port: 1080
+      users:
+        - username: keenetic
+          password: CHANGE_THIS_PASSWORD
+  outbounds:
+    - type: direct
+      tag: direct
+  route:
+    final: direct
+```
+
+The complete `sing_box_config` structure is passed to sing-box, so VLESS REALITY, Hysteria2, rule sets and DNS can be configured without the add-on defining individual fields.
+
+SOCKS5 port 1080 must not be forwarded publicly. Choose a strong password and limit access to trusted LAN clients.
+
+Status: experimental. The add-on has not been independently tested across all HAOS architectures.
