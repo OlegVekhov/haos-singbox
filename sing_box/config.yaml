@@ -1,6 +1,6 @@
 name: sing-box
 slug: sing_box
-version: 1.14.4-4
+version: 1.14.4-5
 description: sing-box with expanded YAML/JSON configuration editor
 url: https://github.com/OlegVekhov/haos-singbox
 arch:
@@ -33,4 +33,5 @@ options:
         tag: direct
     route:
       final: direct
-schema: false
+schema:
+  sing_box_config: str
