@@ -1,7 +1,7 @@
 name: sing-box
 slug: sing_box
-version: 1.14.4-8
-description: sing-box with optional Keenetic Hev UDP-in-TCP bridge
+version: 1.14.4-9
+description: sing-box with Keenetic Hev bridge and read-only SSL certificate access
 url: https://github.com/OlegVekhov/haos-singbox
 arch:
   - amd64
@@ -10,6 +10,9 @@ arch:
 startup: services
 boot: auto
 init: false
+map:
+  - type: ssl
+    read_only: true
 ports:
   1080/tcp: 1080
   1080/udp: null
