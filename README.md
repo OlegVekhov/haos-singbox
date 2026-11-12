@@ -6,7 +6,7 @@
 
 A lightweight, configurable **sing-box proxy add-on** for Home Assistant OS / Supervisor. It runs the official sing-box binary in a dedicated container, with the full sing-box JSON configuration supplied through the native add-on **Configuration** tab.
 
-**Add-on version:** `1.14.4-8` · **sing-box version:** `1.14.4` · **Status:** tested by the maintainer on HAOS; not a Home Assistant official add-on.
+**Add-on version:** `1.14.4-9` · **sing-box version:** `1.14.4` · **Status:** tested by the maintainer on HAOS; not a Home Assistant official add-on.
 
 ## Features
 
@@ -16,6 +16,7 @@ A lightweight, configurable **sing-box proxy add-on** for Home Assistant OS / Su
 - Keep the last successfully validated JSON in `/data/config.json`. The add-on can reuse it if the `sing_box_config` option is missing.
 - Default SOCKS5 listener: internal TCP port `1080`; optional UDP mapping.
 - Optional **Keenetic Hev UDP-in-TCP bridge** (`hev_udp_bridge: true`) for UDP-based applications such as WireGuard through KeeneticOS 5's built-in SOCKS5 client. The bridge passes normal TCP connections to sing-box unchanged.
+- Read-only access to Home Assistant `/ssl` for external TLS certificate and private-key files; no need to embed them in JSON or Docker images.
 - Debian-based multi-architecture container: `amd64`, `aarch64`, `armv7`.
 - No Ingress web interface, privileged container, or host networking.
 
@@ -59,6 +60,10 @@ The manifest currently publishes **internal `1080/tcp`** and optionally **`1080/
 
 **Routing note:** sing-box `direct` means the add-on container/HAOS network, not the phone's mobile network. Reaching a private LAN address requires routes, firewall rules and a working return path from the HAOS host/network.
 
+## TLS certificates from Home Assistant `/ssl`
+
+Place your certificate chain and private key in Home Assistant's SSL share, for example `vekhov-fullchain.pem` and `vekhov-privkey.pem`. The add-on mounts this directory read-only at `/ssl`. In a complete sing-box VLESS TLS configuration use `certificate_path: "/ssl/vekhov-fullchain.pem"` and `key_path: "/ssl/vekhov-privkey.pem"`. Do not commit private-key material. Keep your existing working full `sing_box_config` when upgrading; only change TLS file references when the files are ready. The `8443/tcp` container port can be published as the HAOS host port and forwarded from router WAN TCP/443.
+
 ## Documentation
 
 - [Detailed configuration & troubleshooting](sing_box/DOCS.md)
@@ -73,6 +78,6 @@ Do not commit your actual `sing_box_config`, credentials, UUIDs, REALITY private
 
 ## Updates and compatibility
 
-The add-on release number and upstream sing-box version are separate: `1.14.4-7` means add-on packaging revision `7` for sing-box `1.14.4`. Back up your working configuration before an update. This repository uses source builds at installation time; the version in `sing_box/config.yaml` controls what Supervisor offers as an update.
+The add-on release number and upstream sing-box version are separate: `1.14.4-9` means add-on packaging revision `9` for sing-box `1.14.4`. Back up your working configuration before an update. This repository uses source builds at installation time; the version in `sing_box/config.yaml` controls what Supervisor offers as an update.
 
 **Not affiliated with or endorsed by the Home Assistant project or the sing-box maintainers.**
