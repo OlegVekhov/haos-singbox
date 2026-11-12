@@ -1,5 +1,5 @@
-name: sing-box
-slug: sing_box
+name: sing-box Hev Test
+slug: sing_box_hev_test
 version: 1.14.4-8b1
 description: sing-box with experimental Keenetic Hev UDP-in-TCP bridge
 url: https://github.com/OlegVekhov/haos-singbox
@@ -11,7 +11,7 @@ startup: services
 boot: auto
 init: false
 ports:
-  1080/tcp: 1080
+  1080/tcp: 1082
   1080/udp: null
 ports_description:
   1080/tcp: SOCKS5 TCP (choose external port in Network)
