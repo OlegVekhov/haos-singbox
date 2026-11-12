@@ -1,3 +1,4 @@
+"""HAOS sing-box runner: raw options as configuration, with legacy migrations."""
 import json
 import os
 import subprocess
@@ -9,32 +10,36 @@ CONFIG = Path("/data/config.json")
 BINARY = "/usr/local/bin/sing-box"
 
 
+def decode(value):
+    # HAOS prior releases used a JSON string nested under sing_box_config.
+    # Handle both a native mapping and strings; accept top-level raw JSON too.
+    for _ in range(4):
+        if isinstance(value, str):
+            value = json.loads(value)
+        elif isinstance(value, dict) and "sing_box_config" in value:
+            value = value["sing_box_config"]
+        else:
+            break
+    if not isinstance(value, dict):
+        raise ValueError("Home Assistant options must contain a sing-box JSON object")
+    if not isinstance(value.get("inbounds"), list) or not isinstance(value.get("outbounds"), list):
+        raise ValueError(
+            "Missing inbounds/outbounds. Paste the complete sing-box config "
+            "into the add-on YAML editor (or keep sing_box_config for migration)."
+        )
+    return value
+
+
 def main():
-    options = json.loads(OPTIONS.read_text(encoding="utf-8"))
-    raw = options.get("sing_box_config")
-    # Upgrade-compatible: older installs store a JSON string.
-    # New installs use a native mapping for HAOS raw YAML/JSON editor.
-    if isinstance(raw, str):
-        config = json.loads(raw)
-    elif isinstance(raw, dict):
-        config = raw
-    else:
-        raise ValueError("sing_box_config must be a JSON string or YAML object")
-
-    if not isinstance(config, dict):
-        raise ValueError("sing_box_config must contain a configuration object")
-
-    temp = Path("/data/config.json.tmp")
-    with temp.open("w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2, ensure_ascii=False)
+    config = decode(json.loads(OPTIONS.read_text(encoding="utf-8")))
+    tmp = CONFIG.with_suffix(".json.tmp")
+    with tmp.open("w", encoding="utf-8") as f:
+        json.dump(config, f, ensure_ascii=False, indent=2)
         f.write("\n")
-    temp.chmod(0o600)
-    os.replace(temp, CONFIG)
-
+    tmp.chmod(0o600)
+    os.replace(tmp, CONFIG)
     print("[sing-box] Checking configuration...", flush=True)
-    result = subprocess.run([BINARY, "check", "-c", str(CONFIG)])
-    if result.returncode:
-        sys.exit(result.returncode)
+    subprocess.run([BINARY, "check", "-c", str(CONFIG)], check=True)
     print("[sing-box] Starting...", flush=True)
     os.execv(BINARY, [BINARY, "run", "-D", "/data", "-c", str(CONFIG)])
 
@@ -43,5 +48,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as exc:
-        print(f"[sing-box] Error: {exc}", file=sys.stderr, flush=True)
+        print(f"[sing-box] Startup error: {exc}", file=sys.stderr, flush=True)
         sys.exit(1)
