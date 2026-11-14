@@ -1,6 +1,6 @@
 name: sing-box
 slug: sing_box
-version: 1.14.4-9
+version: 1.14.4-10
 description: sing-box with Keenetic Hev bridge and read-only SSL certificate access
 url: https://github.com/OlegVekhov/haos-singbox
 arch:
@@ -17,10 +17,12 @@ ports:
   1080/tcp: 1080
   1080/udp: null
   8443/tcp: null
+  9090/tcp: 9090
 ports_description:
   1080/tcp: SOCKS5 TCP (choose external port in Network)
   1080/udp: Optional SOCKS5 UDP (legacy mode only)
   8443/tcp: Extra TCP listener for phone (choose external port in Network; configure sing-box inbound on 8443)
+  9090/tcp: Clash API for Home Assistant (LAN only; configure external_controller and secret)
 options:
   hev_udp_bridge: false
   sing_box_config: |
